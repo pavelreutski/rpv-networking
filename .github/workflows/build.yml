@@ -1,0 +1,27 @@
+name: Build project
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential gcc-14 cmake
+
+      - name: Debug
+        run: make debug
+
+      - name: Release
+        run: make release
+```
