@@ -1,0 +1,38 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "displayName": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS" : "ON"
+            }
+        },
+        {
+            "inherits": "base",
+            "name": "debug",
+            "displayName": "debug build",
+            "toolchainFile": "${sourceDir}/tools/cmake/gcc-toolchain-linux-x64.cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE" : "Debug" }
+        },
+        {
+            "inherits": "base",
+            "name": "release",
+            "displayName": "release build",
+            "toolchainFile": "${sourceDir}/tools/cmake/gcc-toolchain-linux-x64.cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE" : "Release" }
+        }
+    ],
+    "buildPresets": [
+        { "name": "debug", "configurePreset": "debug" },
+        { "name": "release", "configurePreset": "release" }
+    ]
+}
