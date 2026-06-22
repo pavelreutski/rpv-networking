@@ -24,3 +24,15 @@ jobs:
 
       - name: Release
         run: make release
+
+      - name: Upload Debug Artifact
+        uses: actions/upload-artifact@v4
+        with:
+           name: linux-x86_64-debug
+           path: build/debug/bin
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+           name: linux-x86_64-release
+           path: build/release/bin
