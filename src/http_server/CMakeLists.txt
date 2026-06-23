@@ -15,4 +15,4 @@ target_include_directories(${EXECUTABLE} PRIVATE ./include)
 
 add_custom_target(run-http-server DEPENDS ${EXECUTABLE}
         COMMENT "running http server..."
-        COMMAND $<TARGET_FILE:${EXECUTABLE}>)
+        COMMAND $<TARGET_FILE:${EXECUTABLE}> 3434)
