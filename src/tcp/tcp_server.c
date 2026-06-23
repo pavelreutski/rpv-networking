@@ -61,13 +61,23 @@ struct tcp_conn {
     struct sockaddr_in client_addr;
 };
 
+typedef enum {
+
+	tcpserver_started,
+	tcpserver_starting,
+	tcpserver_stopping,
+	tcpserver_stopped
+
+} tcpserver_state_t;
+
 /** **************************************************************************
  * Private State
  * ************************************************************************** */
 
 static server_pipe_t server_pipe;
 
-static pthread_t server_tid = ULONG_MAX;
+static pthread_t server_tid;
+static tcpserver_state_t tcpserver_reg = tcpserver_stopped;
 
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
@@ -124,13 +134,15 @@ void tcpserver_clientinfo(tcp_conn_t const* con, char *client_info, const size_t
 
 bool tcpserver_shutdown(void) {
 
-    if (server_tid == ULONG_MAX) {
+    if (tcpserver_reg == tcpserver_stopped) {
 
          perror("server is not alive !");
          return false;
     }
 
 	pthread_mutex_lock(&mux);
+
+	tcpserver_reg = tcpserver_stopping;
 
     const bool stop_flag = true;
     if (write(server_pipe.w_fd, &stop_flag, sizeof(stop_flag)) < 0) {
@@ -141,12 +153,13 @@ bool tcpserver_shutdown(void) {
 		return false;
     }
 
-	pthread_cond_wait(&cond, &mux);
+	while(tcpserver_reg != tcpserver_stopped) {
+		pthread_cond_wait(&cond, &mux);
+	}
+
 	pthread_mutex_unlock(&mux);
 
-	pthread_join(server_tid, NULL);
-
-    server_tid = ULONG_MAX;
+	pthread_join(server_tid, NULL);    
 
 	return true;
 }
@@ -167,10 +180,23 @@ bool tcpserver_start(void (*const on_client)(tcp_conn_t const*), const uint16_t 
 	}
 
 	pthread_mutex_lock(&mux);
-    
-	pthread_create(&server_tid, NULL, tcpserver_runnable, (void *) &server);
 
-	pthread_cond_wait(&cond, &mux);
+	tcpserver_reg = tcpserver_starting;
+    
+	if (pthread_create(
+			&server_tid, NULL, tcpserver_runnable, (void *) &server) != 0) {		
+
+		tcpserver_close(&server);
+		pthread_mutex_unlock(&mux);
+
+		tcpserver_reg = tcpserver_stopped;
+		return false;
+	}
+
+	while(tcpserver_reg != tcpserver_started) {
+		pthread_cond_wait(&cond, &mux);
+	}
+
 	pthread_mutex_unlock(&mux);
 
 	return true;
@@ -199,10 +225,10 @@ static void tcpserver_close(tcp_server_t *server) {
 		close(pipe_wfd);
 	}
 
+	server -> fd = -1;
+
     server_pipe.r_fd = -1;
     server_pipe.w_fd = -1;
-
-    memset((void *) server, -1, sizeof(tcp_server_t));
 }
 
 static bool tcpserver_create(tcp_server_t *server) {
@@ -268,7 +294,9 @@ static void* tcpserver_runnable(void *arg) {
 
 	/* notify server started */
 	
-	pthread_cond_broadcast(&cond);
+	tcpserver_reg = tcpserver_started;
+
+	pthread_cond_broadcast(&cond);	
 	pthread_mutex_unlock(&mux);
 
 	/* server loop */
@@ -327,6 +355,8 @@ static void* tcpserver_runnable(void *arg) {
 
 	tcpserver_close((tcp_server_t *) &server);
 	printf("tcp server socket closed\n");
+
+	tcpserver_reg = tcpserver_stopped;
 
 	pthread_cond_broadcast(&cond);
 	pthread_mutex_unlock(&mux);
