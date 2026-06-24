@@ -2,6 +2,8 @@
  * Includes
  * ************************************************************************** */
 
+#include <ctype.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -48,7 +50,9 @@ static httpclient_context_t httpclient_ctx;
 static void client_handle(tcp_conn_t const* con);
 
 static ssize_t httpserverclient_read(tcp_conn_t const* con, httpclient_context_t *const ctx);
-static bool httpserverclient_getline(httpclient_context_t *const ctx, char *const line, size_t *const len, const size_t max_len);
+
+static bool httpserverclient_gethttpcontext(
+    httpclient_context_t *const ctx, char *restrict line, char **restrict line_memp, const size_t line_maxlen);
 
 /** **************************************************************************
  * Public API
@@ -89,7 +93,7 @@ bool httpserver_start(uint16_t port) {
 
 bool httpserver_shutdown(void) {
 
-    printf("\ntcp server shutdown...\n");
+    printf("\nhttp server shutdown...\n");
 
     bool is_shutdown = tcpserver_shutdown();
 
@@ -108,10 +112,12 @@ bool httpserver_shutdown(void) {
 
 static void client_handle(tcp_conn_t const* con) {    
 
-    int n = 0;
-
     char line[256];
-    char *s = line;
+    char *line_memp = line;
+
+    tcpserver_clientinfo(con, line, sizeof(line));
+
+    printf("client connected %s\n", line);
 
     do {
 
@@ -122,23 +128,10 @@ static void client_handle(tcp_conn_t const* con) {
                 return;
             }
         }
-        
-        size_t len;
-        size_t max_len = (sizeof(line) - (size_t)(s - line)) - 1;
 
-        if(httpserverclient_getline(&httpclient_ctx, s, &len, max_len)) {
+    } while (!httpserverclient_gethttpcontext(&httpclient_ctx, line, &line_memp, sizeof(line) - 1));
 
-            n++;
-            s = line;
-
-            printf("line#%d %s\n", n, line);
-
-        } else {
-            s += len;
-        }        
-
-    } while (*line != '\0');
-
+    int n = 0;
     while(httpserverclient_read(con, &httpclient_ctx) > 0) { n++; }
 }
 
@@ -161,14 +154,18 @@ static ssize_t httpserverclient_read(tcp_conn_t const* con, httpclient_context_t
     return read_size;
 }
 
-static bool httpserverclient_getline(httpclient_context_t *const ctx, char *const line, size_t *const len, const size_t max_len) {    
+static bool httpserverclient_gethttpcontext(
+    httpclient_context_t *const ctx, char *restrict line, char **restrict line_memp, const size_t line_maxlen) {    
 
-    size_t n = 0;
+    size_t n = 0, m = 0;
+    char *s = *line_memp;
 
-    char *s = line;
     uint16_t line_reg = 0;
+    uint8_t context_reg = 0;
 
-    while((line_reg != 0x0d0a) && (n < max_len) && 
+    size_t max_len = line_maxlen - (size_t)(s - line) - 1;
+
+    while((*line != '\0') && (n < max_len) && 
             ((ctx -> buffer.ptr) != (ctx -> buffer.end))) {
 
         char c = *(ctx -> buffer.ptr);
@@ -181,17 +178,28 @@ static bool httpserverclient_getline(httpclient_context_t *const ctx, char *cons
 
         line_reg <<= 8;
         line_reg |= c;
+        
+        bool is_ln = (line_reg == 0x0d0a);
 
+        switch(context_reg) {
+
+            default: {
+
+                if (is_ln) {
+
+                    *s = '\0';
+                    s = line;
+
+                    m++;
+                    printf("line#%lu %s\n", m, line);
+                }
+            }
+        }
+        
         (ctx -> buffer.ptr)++;
     }
 
-    *len = n;
+    *line_memp = s;
 
-    bool is_line = (line_reg == 0x0d0a);
-
-    if (is_line) {
-        *s = '\0';
-    }
-
-    return (line_reg == 0x0d0a);
+    return (*line == '\0');
 }
