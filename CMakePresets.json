@@ -1,8 +1,8 @@
 {
-    "version": 3,
+    "version": 6,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 20,
+        "minor": 28,
         "patch": 0
     },
     "configurePresets": [
@@ -46,6 +46,10 @@
         { "name": "release", "configurePreset": "release" }
     ],
     "testPresets": [
-        { "name": "tests", "configurePreset": "tests", "output": { "outputOnFailure": true } }
+        { "name": "tests", "configurePreset": "tests", 
+          "output": { 
+            "outputOnFailure": true, 
+            "outputJUnitFile": "test-results.xml" } 
+        }
     ]
 }
