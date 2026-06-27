@@ -15,11 +15,19 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # include modules
 
+include(FetchContent)
 include(vscode-intellisense-update)
 
 # add projects
 
 add_subdirectory(./src/tcp)
 
-add_subdirectory(./src/echo_server)
-add_subdirectory(./src/http_server)
+option(BUILD_TESTS "Build unit tests" OFF)
+
+if (BUILD_TESTS)
+        enable_testing()
+        add_subdirectory(./tests)
+else()
+        add_subdirectory(./src/echo_server)
+        add_subdirectory(./src/http_server)
+endif()

@@ -13,11 +13,15 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Set compiler executables
 
 find_program(CMAKE_C_COMPILER NAMES gcc-14 REQUIRED)
+find_program(CMAKE_CXX_COMPILER NAMES g++-14 REQUIRED)
 
 # Base compile flags for all configurations
+set(CXX_FLAGS "-Wall -Wextra -Werror -std=c++23")
 set(C_FLAGS "-Wall -Wextra -Werror -Wpedantic -fPIC -std=gnu23")
 
 # Flags per configuration
+
+set(CMAKE_CXX_FLAGS_DEBUG   "${CXX_FLAGS} -Og -g")
 
 set(CMAKE_C_FLAGS_DEBUG     "${C_FLAGS} -Og -g")
 set(CMAKE_C_FLAGS_RELEASE   "${C_FLAGS} -O3 -DNDEBUG")

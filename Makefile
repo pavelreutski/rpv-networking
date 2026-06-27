@@ -1,9 +1,9 @@
-.PHONY: all debug release clean
+.PHONY: all clean debug release tests
 
 .EXPORT_ALL_VARIABLES:
 MAKEFLAGS = --no-print-directory
 
-all: clean debug release
+all: clean debug release tests
 
 debug:
 	cmake --preset debug
@@ -12,6 +12,11 @@ debug:
 release:
 	cmake --preset release
 	cmake --build --preset release
+
+tests:
+	cmake --preset tests
+	cmake --build --preset tests
+	ctest --preset tests
 
 run-echo-server-debug: debug
 	cmake --build --preset debug --target run-echo-server

@@ -24,6 +24,15 @@
         },
         {
             "inherits": "base",
+            "name": "tests",
+            "displayName": "tests build",
+            "toolchainFile": "${sourceDir}/tools/cmake/gcc-toolchain-linux-x64.cmake",
+            "cacheVariables": {
+                "BUILD_TESTS" : "ON",
+                "CMAKE_BUILD_TYPE": "Debug" }
+        },
+        {
+            "inherits": "base",
             "name": "release",
             "displayName": "release build",
             "toolchainFile": "${sourceDir}/tools/cmake/gcc-toolchain-linux-x64.cmake",
@@ -32,7 +41,11 @@
         }
     ],
     "buildPresets": [
+        { "name": "tests", "configurePreset": "tests" },
         { "name": "debug", "configurePreset": "debug" },
         { "name": "release", "configurePreset": "release" }
+    ],
+    "testPresets": [
+        { "name": "tests", "configurePreset": "tests", "output": { "outputOnFailure": true } }
     ]
 }
