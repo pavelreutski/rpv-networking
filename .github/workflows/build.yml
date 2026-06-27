@@ -53,9 +53,9 @@ jobs:
             build/release/bin
           if-no-files-found: ignore
 
-      -name: Upload Tests Results
-       uses: actions/upload-artifact@v7
-       with:
+      - name: Upload Tests Results
+        uses: actions/upload-artifact@v7
+        with:
           name: test-results
           path: |
             build/tests/test-results.xml
