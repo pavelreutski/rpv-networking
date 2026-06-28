@@ -58,6 +58,7 @@ jobs:
         uses: mikepenz/action-junit-report@v6
         if: always()
         with:
+          include_passed: true
           report_paths: build/tests/test-results.xml
 
       - name: Package Release Assets
