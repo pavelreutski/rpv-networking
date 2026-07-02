@@ -10,8 +10,8 @@ file(GLOB C_SOURCES CONFIGURE_DEPENDS *.c)
 
 add_executable(${EXECUTABLE} ${C_SOURCES})
 
-target_link_libraries(${EXECUTABLE} PRIVATE rpv-net-tcp)
 target_include_directories(${EXECUTABLE} PRIVATE ./include)
+target_link_libraries(${EXECUTABLE} PRIVATE rpv-mem rpv-net-tcp)
 
 add_custom_target(run-http-server DEPENDS ${EXECUTABLE}
         COMMENT "running http server..."

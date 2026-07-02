@@ -14,7 +14,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(http_server-tests http_server_tests.cpp)
 
-target_link_libraries(http_server-tests PRIVATE rpv-net-tcp GTest::gtest_main)
+target_link_libraries(http_server-tests PRIVATE rpv-mem rpv-net-tcp GTest::gtest_main)
 target_include_directories(http_server-tests PRIVATE ${CMAKE_SOURCE_DIR}/src/tcp)
 
 include(GoogleTest)

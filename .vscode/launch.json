@@ -31,16 +31,21 @@
             "program": "${workspaceFolder}/build/tests/bin/http_server-tests",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
+            "cwd": "${fileDirname}",            
             "externalConsole": false,
             "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",          
             "setupCommands": [
+                {
+                    "description": "Disable debuginfod",
+                    "text": "set debuginfod enabled off",
+                    "ignoreFailures": true
+                },
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
-                },
+                },                
                 {
                     "description": "Set Disassembly Flavor to Intel",
                     "text": "-gdb-set disassembly-flavor intel",

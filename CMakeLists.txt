@@ -20,6 +20,7 @@ include(vscode-intellisense-update)
 
 # add projects
 
+add_subdirectory(./src/mem)
 add_subdirectory(./src/tcp)
 
 option(BUILD_TESTS "Build unit tests" OFF)

@@ -8,10 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "allocator.h"
 #include "tcp_server.h"
 #include "http_server.h"
-
-#include "http_server_ops.h"
 
 #define BUFFER_SIZE                                                     (4096)
 
@@ -70,14 +69,6 @@ typedef struct {
 
 static httpclient_context_t httpclient_ctx;
 
-static void (*_free)(void *) = free;
-static void* (*_malloc)(size_t) = malloc;
-
-static bool (*_tcpserver_shutdown)(void) = tcpserver_shutdown;
-static bool (*_tcpserver_start)(void (*const)(tcp_conn_t const*), uint16_t) = tcpserver_start;
-
-static ssize_t (*_tcpserver_read)(tcp_conn_t const*, void *, const size_t) = tcpserver_read;
-
 /** **************************************************************************
  * Private Function Declarations
  * ************************************************************************** */
@@ -88,23 +79,6 @@ static ssize_t httpserverclient_read(tcp_conn_t const* con, httpclient_context_t
 
 static httpcontext_result_t httpserverclient_gethttpcontext(
     tcp_conn_t const* con, httpclient_context_t *const client_ctx, httprequest_context_t *const request_ctx);
-
-/** **************************************************************************
- * Internal API
- * ************************************************************************** */
-
-void httpserver_ops(httpserver_ops_t const* ops) {
-
-    if (ops == NULL) return;
-    
-    _free = ops -> _free;
-    _malloc = ops -> _malloc;
-
-    _tcpserver_read = ops -> _tcpserver_read;
-    
-    _tcpserver_start = ops -> _tcpserver_start;
-    _tcpserver_shutdown = ops -> _tcpserver_shutdown;
-}
 
 /** **************************************************************************
  * Public API
@@ -134,7 +108,7 @@ bool httpserver_start(uint16_t port) {
     
     /* start tcp server */
 
-    if (!_tcpserver_start(client_handle, port)) {
+    if (!tcpserver_start(client_handle, port)) {
 
         printf("unnable to start a server !\n");
         return false;
@@ -147,7 +121,7 @@ bool httpserver_shutdown(void) {
 
     printf("\nhttp server shutdown...\n");
 
-    bool is_shutdown = _tcpserver_shutdown();
+    bool is_shutdown = tcpserver_shutdown();
 
     if (!is_shutdown) {
         printf("unnable to stop a server !\n");        
@@ -188,7 +162,7 @@ static ssize_t httpserverclient_read(tcp_conn_t const* con, httpclient_context_t
     void *client_data = ctx -> buffer.data;
     size_t capacity = ctx -> buffer.capacity;
 
-    ssize_t read_size = _tcpserver_read(con, client_data, capacity);
+    ssize_t read_size = tcpserver_read(con, client_data, capacity);
 
     if (read_size <= 0) {
         return read_size;
