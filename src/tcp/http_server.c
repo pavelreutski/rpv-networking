@@ -192,9 +192,9 @@ static httpcontext_result_t httpserverclient_gethttpcontext(
     
     memset((void *) request_ctx, 0xCC, sizeof(httprequest_context_t));
 
-    size_t param_len = 0;
-
     char *param = request_ctx -> method;
+
+    size_t param_len = 0;
     size_t parmax_len = sizeof(request_ctx -> method);
 
     uint16_t line_reg = 0;
